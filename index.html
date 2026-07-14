@@ -174,6 +174,24 @@
 
   .table-wrap { overflow-x: auto; }
 
+  #add-bunot-worker {
+    font-size: 13px;
+    padding: 7px 14px;
+  }
+
+  .reconcile-ok { color: var(--ink-faint); }
+  .reconcile-warn { color: #A34A1F; font-weight: 500; }
+
+  .remove-worker-btn {
+    border: none;
+    background: none;
+    color: #A34A1F;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 2px 6px;
+    cursor: pointer;
+  }
+
   @media (max-width: 700px) {
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
@@ -247,6 +265,22 @@
   </div>
 
   <div class="card">
+    <h2>Bunot worker payouts</h2>
+    <p class="hint">Split Bunot's total cost among the workers who did the dehusking, based on each worker's piece count.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Worker</th><th>Pieces</th><th>Payout (₱)</th><th></th></tr>
+        </thead>
+        <tbody id="bunot-worker-body"></tbody>
+        <tfoot><tr id="bunot-worker-totals"></tr></tfoot>
+      </table>
+    </div>
+    <button id="add-bunot-worker" style="margin-top:12px;">+ Add worker</button>
+    <p class="hint" id="bunot-reconcile" style="margin-top:12px; margin-bottom:0;"></p>
+  </div>
+
+  <div class="card">
     <h2>Accounts</h2>
     <p class="hint">Pieces and kilos harvested per account.</p>
     <div class="table-wrap">
@@ -305,6 +339,10 @@ let recipients = [
   { name: "Inday" }
 ];
 let poolAccountName = "Common";
+let bunotWorkers = [
+  { name: "Worker 1", pieces: 0 },
+  { name: "Worker 2", pieces: 0 }
+];
 
 function fmt(n) {
   if (!isFinite(n)) return "0.00";
@@ -332,6 +370,43 @@ function renderAccounts() {
     });
   });
 }
+
+function renderBunotWorkers() {
+  const body = document.getElementById("bunot-worker-body");
+  body.innerHTML = "";
+  bunotWorkers.forEach((w, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><input type="text" data-i="${i}" data-f="name" value="${w.name}"></td>
+      <td><input type="number" data-i="${i}" data-f="pieces" value="${w.pieces}"></td>
+      <td id="bunot-worker-pay-${i}">0.00</td>
+      <td style="text-align:center;"><button class="remove-worker-btn" data-remove="${i}" title="Remove worker">&times;</button></td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", e => {
+      const i = +e.target.dataset.i;
+      const f = e.target.dataset.f;
+      bunotWorkers[i][f] = f === "name" ? e.target.value : (parseFloat(e.target.value) || 0);
+      compute();
+    });
+  });
+  body.querySelectorAll("button[data-remove]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = +e.currentTarget.dataset.remove;
+      bunotWorkers.splice(i, 1);
+      renderBunotWorkers();
+      compute();
+    });
+  });
+}
+
+document.getElementById("add-bunot-worker").addEventListener("click", () => {
+  bunotWorkers.push({ name: "Worker " + (bunotWorkers.length + 1), pieces: 0 });
+  renderBunotWorkers();
+  compute();
+});
 
 function computeAccountBreakdown(r, price, sharedTotal, totalPieces, tapokRate, bunotRate, hakotRate) {
   const gross = r.kilos * price;
@@ -377,6 +452,33 @@ function compute() {
     <td>Total expenses</td>
     <td>${fmt(grandExpenseTotal)}</td>
   `;
+
+  const totalWorkerPieces = bunotWorkers.reduce((s, w) => s + w.pieces, 0);
+  let workerPaySum = 0;
+  bunotWorkers.forEach((w, i) => {
+    const pay = (w.pieces / 1000) * bunotRate;
+    workerPaySum += pay;
+    const cell = document.getElementById(`bunot-worker-pay-${i}`);
+    if (cell) cell.textContent = fmt(pay);
+  });
+  document.getElementById("bunot-worker-totals").innerHTML = `
+    <td>Total</td>
+    <td>${fmt(totalWorkerPieces)}</td>
+    <td>${fmt(workerPaySum)}</td>
+    <td></td>
+  `;
+  const reconcile = document.getElementById("bunot-reconcile");
+  const diff = totalPieces - totalWorkerPieces;
+  if (Math.abs(diff) < 0.001) {
+    reconcile.className = "hint reconcile-ok";
+    reconcile.textContent = `Worker pieces match total pieces harvested (${fmt(totalPieces)}).`;
+  } else if (diff > 0) {
+    reconcile.className = "hint reconcile-warn";
+    reconcile.textContent = `${fmt(diff)} pieces harvested aren't assigned to a worker yet.`;
+  } else {
+    reconcile.className = "hint reconcile-warn";
+    reconcile.textContent = `Worker pieces exceed total harvested by ${fmt(-diff)}. Check your entries.`;
+  }
 
   const netByAccount = {};
   const breakdownByAccount = {};
@@ -459,6 +561,7 @@ function compute() {
 });
 
 renderAccounts();
+renderBunotWorkers();
 compute();
 </script>
 
