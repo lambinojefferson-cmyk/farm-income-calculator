@@ -216,7 +216,7 @@
   <header>
     <p class="eyebrow">Coconut farm accounting</p>
     <h1>Farm income share calculator</h1>
-    <p>Enter pieces and kilos per account. Sungkit and Food Transpo split by each account's share of total pieces. Tapok, Bunot, and Hakot charge per 1000 pieces. Common's net share splits five ways.</p>
+    <p>Enter pieces and kilos per account. Sungkit, Food Transpo, and Manager split by each account's share of total pieces. Tapok, Bunot, and Hakot charge per 1000 pieces. Common's net share splits five ways.</p>
   </header>
 
   <div class="card">
@@ -246,6 +246,10 @@
       <div>
         <label for="g-hakot">Hakot rate (₱ / 1000 pcs)</label>
         <input type="number" id="g-hakot" value="0" step="1">
+      </div>
+      <div>
+        <label for="g-manager">Manager total (₱, shared)</label>
+        <input type="number" id="g-manager" value="0" step="1">
       </div>
     </div>
   </div>
@@ -425,18 +429,20 @@ function compute() {
   const tapokRate = parseFloat(document.getElementById("g-tapok").value) || 0;
   const bunotRate = parseFloat(document.getElementById("g-bunot").value) || 0;
   const hakotRate = parseFloat(document.getElementById("g-hakot").value) || 0;
+  const manager = parseFloat(document.getElementById("g-manager").value) || 0;
 
   const totalPieces = rows.reduce((s, r) => s + r.pieces, 0);
-  const sharedTotal = sungkit + transpo;
+  const sharedTotal = sungkit + transpo + manager;
 
   const tapokTotal = (totalPieces / 1000) * tapokRate;
   const bunotTotal = (totalPieces / 1000) * bunotRate;
   const hakotTotal = (totalPieces / 1000) * hakotRate;
-  const grandExpenseTotal = sungkit + transpo + tapokTotal + bunotTotal + hakotTotal;
+  const grandExpenseTotal = sungkit + transpo + manager + tapokTotal + bunotTotal + hakotTotal;
 
   const expenseRows = [
     ["Sungkit (shared)", sungkit],
     ["Food transpo (shared)", transpo],
+    ["Manager (shared)", manager],
     ["Tapok", tapokTotal],
     ["Bunot", bunotTotal],
     ["Hakot", hakotTotal]
@@ -556,7 +562,7 @@ function compute() {
   `;
 }
 
-["g-price", "g-sungkit", "g-transpo", "g-tapok", "g-bunot", "g-hakot"].forEach(id => {
+["g-price", "g-sungkit", "g-transpo", "g-tapok", "g-bunot", "g-hakot", "g-manager"].forEach(id => {
   document.getElementById(id).addEventListener("input", compute);
 });
 
