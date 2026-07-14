@@ -233,6 +233,20 @@
   </div>
 
   <div class="card">
+    <h2>Expense summary</h2>
+    <p class="hint">Total cost per expense type across all accounts, based on total pieces harvested.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Expense</th><th>Total (₱)</th></tr>
+        </thead>
+        <tbody id="expense-summary-body"></tbody>
+        <tfoot><tr id="expense-summary-total"></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Accounts</h2>
     <p class="hint">Pieces and kilos harvested per account.</p>
     <div class="table-wrap">
@@ -339,6 +353,30 @@ function compute() {
 
   const totalPieces = rows.reduce((s, r) => s + r.pieces, 0);
   const sharedTotal = sungkit + transpo;
+
+  const tapokTotal = (totalPieces / 1000) * tapokRate;
+  const bunotTotal = (totalPieces / 1000) * bunotRate;
+  const hakotTotal = (totalPieces / 1000) * hakotRate;
+  const grandExpenseTotal = sungkit + transpo + tapokTotal + bunotTotal + hakotTotal;
+
+  const expenseRows = [
+    ["Sungkit (shared)", sungkit],
+    ["Food transpo (shared)", transpo],
+    ["Tapok", tapokTotal],
+    ["Bunot", bunotTotal],
+    ["Hakot", hakotTotal]
+  ];
+  const expenseSummaryBody = document.getElementById("expense-summary-body");
+  expenseSummaryBody.innerHTML = "";
+  expenseRows.forEach(([label, value]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${label}</td><td>${fmt(value)}</td>`;
+    expenseSummaryBody.appendChild(tr);
+  });
+  document.getElementById("expense-summary-total").innerHTML = `
+    <td>Total expenses</td>
+    <td>${fmt(grandExpenseTotal)}</td>
+  `;
 
   const netByAccount = {};
   const breakdownByAccount = {};
