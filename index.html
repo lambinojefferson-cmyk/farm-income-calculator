@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm income share calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F3EFE6;
+    --card: #FFFFFF;
+    --border: #E3DECF;
+    --border-strong: #CFC7B0;
+    --ink: #2B2B27;
+    --ink-soft: #6B6559;
+    --ink-faint: #948C7B;
+    --green: #2F5233;
+    --green-deep: #21391F;
+    --gold: #B8860F;
+    --gold-soft: #F4E6BE;
+    --row-alt: #FAF8F2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 40px 20px 80px;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--green);
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    color: var(--green-deep);
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 560px;
+    line-height: 1.5;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px 26px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(43, 43, 39, 0.04);
+  }
+
+  .card h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--green-deep);
+    margin: 0 0 4px;
+  }
+
+  .card .hint {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin: 0 0 16px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: #FDFCFA;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  input:hover { border-color: var(--ink-faint); }
+
+  input:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(47, 82, 51, 0.12);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  th {
+    text-align: right;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ink-faint);
+    padding: 0 10px 10px;
+    border-bottom: 1px solid var(--border-strong);
+  }
+
+  th:first-child, td:first-child { text-align: left; }
+
+  td {
+    padding: 10px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  td:first-child { font-weight: 500; color: var(--green-deep); }
+
+  tfoot td {
+    font-weight: 600;
+    color: var(--green-deep);
+    border-top: 2px solid var(--green);
+    border-bottom: none;
+    background: var(--gold-soft);
+  }
+
+  #payout-body td:last-child { font-weight: 600; color: var(--green-deep); }
+
+  .table-wrap { overflow-x: auto; }
+
+  @media (max-width: 600px) {
+    body { padding: 24px 12px 60px; }
+    h1 { font-size: 24px; }
+    .card { padding: 18px 16px 20px; }
+    table { font-size: 12.5px; }
+    td, th { padding: 8px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <p class="eyebrow">Coconut farm accounting</p>
+    <h1>Farm income share calculator</h1>
+    <p>Enter pieces and kilos per account. Sungkit and Food Transpo split by each account's share of total pieces. Tapok, Bunot, and Hakot charge per 1000 pieces. Common's net share splits five ways.</p>
+  </header>
+
+  <div class="card">
+    <h2>Price and global expenses</h2>
+    <p class="hint">Applies the same rate across every account.</p>
+    <div class="grid">
+      <div>
+        <label for="g-price">Price per kilo (₱)</label>
+        <input type="number" id="g-price" value="0" step="0.01">
+      </div>
+      <div>
+        <label for="g-sungkit">Sungkit total (₱, shared)</label>
+        <input type="number" id="g-sungkit" value="0" step="1">
+      </div>
+      <div>
+        <label for="g-transpo">Food transpo total (₱, shared)</label>
+        <input type="number" id="g-transpo" value="0" step="1">
+      </div>
+      <div>
+        <label for="g-tapok">Tapok rate (₱ / 1000 pcs)</label>
+        <input type="number" id="g-tapok" value="0" step="1">
+      </div>
+      <div>
+        <label for="g-bunot">Bunot rate (₱ / 1000 pcs)</label>
+        <input type="number" id="g-bunot" value="0" step="1">
+      </div>
+      <div>
+        <label for="g-hakot">Hakot rate (₱ / 1000 pcs)</label>
+        <input type="number" id="g-hakot" value="0" step="1">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Accounts</h2>
+    <p class="hint">Pieces and kilos harvested per account.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Account</th><th>Pieces</th><th>Total kilos</th></tr>
+        </thead>
+        <tbody id="acct-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Account breakdown</h2>
+    <p class="hint">Gross income minus this account's share of every expense.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Account</th><th>Gross income</th><th>Shared exp.</th><th>Per-1000 exp.</th><th>Total exp.</th><th>Net share</th></tr>
+        </thead>
+        <tbody id="breakdown-body"></tbody>
+        <tfoot><tr id="breakdown-totals"></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Final payouts</h2>
+    <p class="hint">Own net share plus a fifth of Common's net share, where it applies.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Recipient</th><th>Own net share</th><th>Pool share</th><th>Total payout</th></tr>
+        </thead>
+        <tbody id="payout-body"></tbody>
+        <tfoot><tr id="payout-totals"></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let rows = [
+  { name: "Papa", pieces: 0, kilos: 0 },
+  { name: "Tebing", pieces: 0, kilos: 0 },
+  { name: "Common", pieces: 0, kilos: 0 },
+  { name: "Vic", pieces: 0, kilos: 0 },
+  { name: "Epoy", pieces: 0, kilos: 0 }
+];
+let recipients = [
+  { name: "Junie" },
+  { name: "Papa" },
+  { name: "Vic" },
+  { name: "Ondo" },
+  { name: "Inday" }
+];
+let poolAccountName = "Common";
+
+function fmt(n) {
+  if (!isFinite(n)) return "0.00";
+  return Number(n.toFixed(2)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderAccounts() {
+  const body = document.getElementById("acct-body");
+  body.innerHTML = "";
+  rows.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.name}</td>
+      <td><input type="number" data-i="${i}" data-f="pieces" value="${r.pieces}"></td>
+      <td><input type="number" data-i="${i}" data-f="kilos" value="${r.kilos}"></td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", e => {
+      const i = +e.target.dataset.i;
+      const f = e.target.dataset.f;
+      rows[i][f] = parseFloat(e.target.value) || 0;
+      compute();
+    });
+  });
+}
+
+function computeAccountBreakdown(r, price, sharedTotal, totalPieces, tapokRate, bunotRate, hakotRate) {
+  const gross = r.kilos * price;
+  const proportion = totalPieces > 0 ? r.pieces / totalPieces : 0;
+  const sharedShare = sharedTotal * proportion;
+  const per1000 = (r.pieces / 1000) * (tapokRate + bunotRate + hakotRate);
+  const totalExp = sharedShare + per1000;
+  const net = gross - totalExp;
+  return { gross, sharedShare, per1000, totalExp, net };
+}
+
+function compute() {
+  const price = parseFloat(document.getElementById("g-price").value) || 0;
+  const sungkit = parseFloat(document.getElementById("g-sungkit").value) || 0;
+  const transpo = parseFloat(document.getElementById("g-transpo").value) || 0;
+  const tapokRate = parseFloat(document.getElementById("g-tapok").value) || 0;
+  const bunotRate = parseFloat(document.getElementById("g-bunot").value) || 0;
+  const hakotRate = parseFloat(document.getElementById("g-hakot").value) || 0;
+
+  const totalPieces = rows.reduce((s, r) => s + r.pieces, 0);
+  const sharedTotal = sungkit + transpo;
+
+  const netByAccount = {};
+  const breakdownByAccount = {};
+  rows.forEach(r => {
+    const b = computeAccountBreakdown(r, price, sharedTotal, totalPieces, tapokRate, bunotRate, hakotRate);
+    netByAccount[r.name] = b.net;
+    breakdownByAccount[r.name] = b;
+  });
+
+  const breakdownBody = document.getElementById("breakdown-body");
+  breakdownBody.innerHTML = "";
+  let bGross = 0, bShared = 0, bPer1000 = 0, bExp = 0, bNet = 0;
+  rows.forEach(r => {
+    const b = breakdownByAccount[r.name];
+    bGross += b.gross; bShared += b.sharedShare; bPer1000 += b.per1000; bExp += b.totalExp; bNet += b.net;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.name}</td>
+      <td>${fmt(b.gross)}</td>
+      <td>${fmt(b.sharedShare)}</td>
+      <td>${fmt(b.per1000)}</td>
+      <td>${fmt(b.totalExp)}</td>
+      <td>${fmt(b.net)}</td>
+    `;
+    breakdownBody.appendChild(tr);
+  });
+  document.getElementById("breakdown-totals").innerHTML = `
+    <td>Total</td>
+    <td>${fmt(bGross)}</td>
+    <td>${fmt(bShared)}</td>
+    <td>${fmt(bPer1000)}</td>
+    <td>${fmt(bExp)}</td>
+    <td>${fmt(bNet)}</td>
+  `;
+
+  const poolNet = poolAccountName ? (netByAccount[poolAccountName] || 0) : 0;
+  const perRecipient = poolAccountName ? poolNet / 5 : 0;
+
+  const payouts = {};
+  rows.forEach(r => {
+    if (r.name === poolAccountName) return;
+    payouts[r.name] = { own: netByAccount[r.name] || 0, pool: 0 };
+  });
+
+  recipients.forEach(rec => {
+    if (!poolAccountName) return;
+    const key = rec.name && rec.name.trim() ? rec.name.trim() : null;
+    if (!key) return;
+    if (!payouts[key]) payouts[key] = { own: 0, pool: 0 };
+    payouts[key].pool += perRecipient;
+  });
+
+  const payoutBody = document.getElementById("payout-body");
+  payoutBody.innerHTML = "";
+  let sumOwn = 0, sumPool = 0, sumTotal = 0;
+  Object.keys(payouts).forEach(name => {
+    const p = payouts[name];
+    const total = p.own + p.pool;
+    sumOwn += p.own; sumPool += p.pool; sumTotal += total;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${name}</td>
+      <td>${fmt(p.own)}</td>
+      <td>${fmt(p.pool)}</td>
+      <td>${fmt(total)}</td>
+    `;
+    payoutBody.appendChild(tr);
+  });
+
+  document.getElementById("payout-totals").innerHTML = `
+    <td>Total</td>
+    <td>${fmt(sumOwn)}</td>
+    <td>${fmt(sumPool)}</td>
+    <td>${fmt(sumTotal)}</td>
+  `;
+}
+
+["g-price", "g-sungkit", "g-transpo", "g-tapok", "g-bunot", "g-hakot"].forEach(id => {
+  document.getElementById(id).addEventListener("input", compute);
+});
+
+renderAccounts();
+compute();
+</script>
+
+</body>
+</html>
